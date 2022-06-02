@@ -216,15 +216,25 @@ int readTree (FILE *fb, Tree *tree) {
     return 0;
 }
 
+int printTree (Node *root, int p) {
+    if (root->left)
+        printTree(root->left, p + 5);
+    for (int i = 0; i <= p; i++)
+        printf(" ");
+    printf("(%u %s)\n", root->key, root->info);
+    if (root->right)
+        printTree(root->right, p + 5);
+}
+
 Node *delLeft(Node *node) {
     if (node == NULL) {
         return NULL;
     }
-    rootColorFlip(node);
-    if (node->right != NULL && checkRootColor(node->right->left)) {
-        node->right = treeRotationRight(node->right);
-        node = treeRotationLeft(node);
-        rootColorFlip(node);
+    node->color = !node->color;
+    if (node->right != NULL && node->right->left->color == red) {
+        rotateToRight(node->right);
+        rotateToLeft(node);
+        node->color = !node->color;
     }
     return node;
 }
@@ -233,10 +243,10 @@ Node *delRight(Node *node) {
     if (node == NULL) {
         return NULL;
     }
-    rootColorFlip(node);
-    if (node->left != NULL && checkRootColor(node->left->left)) {
-        node = treeRotationRight(node);
-        rootColorFlip(node);
+    node->color = !node->color;
+    if (node->left != NULL && node->left->left->color == red) {
+        rotateToRight(node);
+        node->color = !node->color;
     }
     return node;
 }
@@ -246,22 +256,22 @@ Node *processDel(Node *root, unsigned int key) {
         return NULL;
     }
     if (root->key > key) {
-        if (root->left != NULL && !checkRootColor(root->left) && !checkRootColor(root->left->left)) {
+        if (root->left != NULL && root->left->color == red && root->left->left->color == red) {
             root = delLeft(root);
         }
         if (root != NULL) {
             root->left = processDel(key, root->left);
         }
     } else {
-        if (checkRootColor(root->left)) {
-            root = treeRotationRight(root);
+        if (root->left->color == red) {
+            rotateToRight(root);
         }
         if (root->key == key && root->right == NULL) {
             free(root->info);
             free(root);
             return NULL;
         }
-        if (root->right != NULL && !checkRootColor(root->right) && !checkRootColor(root->right->left)) {
+        if (root->right != NULL && root->right->color == black && root->right->left->color == black) {
             root = delRight(root);
         }
         if (!strcmp(root->key, key)) {
@@ -282,7 +292,13 @@ int delElement(Tree *tree, unsigned int key) {
     if (findByKey(tree, key) == 0 || tree->root == NULL) {
         return 1;
     }
-    if (!checkRootColor(tree->root->left) && !checkRootColor(tree->root->right)) {
+    if (tree->root->left == NULL && tree->root->right == NULL){
+        free(tree->root);
+        tree->root = NULL;
+        return 0;
+    }
+
+    if (!tree->root->left->color == red && tree->root->right->color == black) {
         tree->root->color = red;
     }
     tree->root = processDel(tree->root, key);
@@ -290,14 +306,4 @@ int delElement(Tree *tree, unsigned int key) {
         tree->root->color = black;
     }
     return 0;
-}
-
-int printTree (Node *root, int p) {
-    if (root->left)
-        printTree(root->left, p + 5);
-    for (int i = 0; i <= p; i++)
-        printf(" ");
-    printf("(%u %s)\n", root->key, root->info);
-    if (root->right)
-        printTree(root->right, p + 5);
 }
