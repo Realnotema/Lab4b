@@ -124,74 +124,81 @@ Node *special (Tree *tree, unsigned int key) {
     return pos;
 }
 
-char checkRootColor(Node *root) {
-    if (root == NULL)
-        return black;
-    return (char) (root->color == red);
+void rotateToRight(Node *node) {
+    Node *right = node->right;
+    Node *par = node->par;
+    node->right = par;
+    if (par->par)
+        node->par = par->par;
+    else node->par = NULL;
+    par->par = node;
+    par->left = right;
+    if (right != NULL)
+        right->par = par;
 }
 
-int rootColorFlip(Node *root) {
-    if (root == NULL)
-        return 1;
-    root->color = !root->color;
-    root->left->color = !root->left->color;
-    root->right->color = !root->right->color;
-    return 0;
+void rotateToLeft (Node *node) {
+    Node *left = node->left;
+    Node *par = node->par;
+    node->left = par;
+    if (par->par)
+        node->par = par->par;
+    else node->par = NULL;
+    par->par = node;
+    par->right = left;
+    if (left != NULL)
+        left->par = par;
 }
 
-Node *treeRotationLeft(Node *root) {
-    if (root == NULL)
-        return NULL;
-    Node *temp = root->right;
-    root->right = temp->left;
-    temp->left = root;
-    temp->color = root->color;
-    root->color = red;
-    return temp;
-}
-
-Node *treeRotationRight(Node *root) {
-    if (root == NULL)
-        return NULL;
-    Node *child = root->left;
-    root->left = child->right;
-    child->right = root;
-    child->color = root->color;
-    root->color = red;
-    return child;
-}
-
-Node *newNode (unsigned int key, char *info, int color) {
-    Node *node = calloc(1, sizeof(Node));
-    node->key = key;
-    node->info = info;
-    node->color = color;
-    return node;
-}
-
-Node *processAdd(Node *root, unsigned int key, char *info) {
-    if (root == NULL)
-        return newNode(key, info, red);
-    if (root->key > key)
-        root->left = processAdd(root->left, key, info);
-    if (root->key < key)
-        root->right = processAdd(root->left, key, info);
-    if (checkRootColor(root->right) && !checkRootColor(root->left))
-        root = treeRotationLeft(root);
-    if (checkRootColor(root->left) && checkRootColor(root->left->left))
-        root = treeRotationRight(root);
-    if (checkRootColor(root->left) && checkRootColor(root->right))
-        rootColorFlip(root);
-    return root;
+void swapColors(Node *node1, Node *node2) {
+    if (node1 == NULL || node2 == NULL)
+        return;
+    int temp = node1->color;
+    node1->color = node2->color;
+    node2->color = temp;
 }
 
 int addElement (Tree *tree, unsigned int key, char *info) {
-    const char *mess = "Error: key was added recently";
-    if (findByKey(tree, key) == 1) {
-        puts(mess);
-        return 1;
+    Node *temp = (Node *) calloc(1, sizeof(Node));
+    temp->key = key;
+    temp->info = info;
+    temp->color = red;
+    if (tree->root == NULL) {
+        tree->root = temp;
+        tree->tsize++;
+        return 0;
     }
-    tree->root = processAdd(tree->root, key, info);
+    Node *ptr = tree->root;
+    Node *par = NULL;
+    while (ptr != NULL) {
+        par = ptr;
+        if (temp->key < ptr->key)
+            ptr = ptr->left;
+        else
+            ptr = ptr->right;
+    }
+    if (par->key == temp->key)
+        return 1;
+    if (temp->key < par->key)
+        par->left = temp;
+    else
+        par->right = temp;
+    temp->par = par;
+    if (par->par && par->par->left && par->par->left->color == red) {
+        if (par->par == tree->root)
+            tree->root = par;
+        rotateToRight(par->par->left);
+    }
+    if (par->right == temp) {
+        if (par == tree->root)
+            tree->root = temp;
+        rotateToLeft(temp);
+    }
+    if (tree->root->color == red) {
+        if (tree->root->left->color != red)
+            swapColors(tree->root, tree->root->left);
+        else tree->root->color = black;
+    }
     tree->tsize++;
     return 0;
 }
