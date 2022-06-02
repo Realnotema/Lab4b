@@ -26,7 +26,7 @@ int processWriteColor (Tree *tree, FILE *fb, Node *root, int headKey, int p) {
 int writeTree (FILE *fb, Tree *tree) {
     if (tree == 0)
         return 1;
-    fprintf(fb, "digraph GG {\n\t{\n");
+    fprintf(fb, "digraph GG {\n\t{\n\tnode [margin=0 fontcolor=white shape=circle style=filled]\n");
     processWriteColor(tree, fb, tree->root, tree->root->key, 0);
     fprintf(fb, "\t}\n");
     processWriteTree(tree, fb, tree->root, tree->root->key, 0);
