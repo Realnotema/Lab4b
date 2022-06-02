@@ -3,6 +3,36 @@
 #include <string.h>
 #include "tree.h"
 
+int processWriteTree (Tree *tree, FILE *fb, Node *root, int headKey, int p) {
+    if (root->left)
+        processWriteTree(tree, fb, root->left, headKey, p + 5);
+    if (root->key != headKey && root->par != NULL) {
+        if (root->par != tree->root)
+            fprintf(fb, "\t%d->%d\n", root->par->key, root->key);
+    }
+    if (root->right)
+        processWriteTree(tree, fb, root->right, headKey, p + 5);
+}
+
+int processWriteColor (Tree *tree, FILE *fb, Node *root, int headKey, int p) {
+    char *color = (root->color == 1) ? "red" : "black";
+    fprintf(fb, "\t%d [fillcolor = %s]\n", root->key, color);
+    if (root->left)
+        processWriteColor(tree, fb, root->left, headKey, p + 5);
+    if (root->right)
+        processWriteColor(tree, fb, root->right, headKey, p + 5);
+}
+
+int writeTree (FILE *fb, Tree *tree) {
+    if (tree == 0)
+        return 1;
+    fprintf(fb, "digraph GG {\n\t{\n");
+    processWriteColor(tree, fb, tree->root, tree->root->key, 0);
+    fprintf(fb, "\t}\n");
+    processWriteTree(tree, fb, tree->root, tree->root->key, 0);
+    fprintf(fb, "}");
+    return 0;
+}
 
 int freeTree (Node *root) {
     if (root == NULL )
