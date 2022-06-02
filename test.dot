@@ -1,0 +1,18 @@
+digraph G {
+  {
+    node [margin=0 fontcolor=white shape=circle style=filled]
+    6 [fillcolor=black]
+    4 [fillcolor=black]
+    3 [fillcolor=red]
+    2 [fillcolor=black]
+    5 [fillcolor=black]
+    7 [fillcolor=black]
+    8 [fillcolor=black]
+  }
+  6->4
+  4->3
+  3->2
+  4->5
+  6->7
+  7->8
+}
